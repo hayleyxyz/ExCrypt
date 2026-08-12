@@ -1,3 +1,9 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(ExCrypt LANGUAGES C CXX)
+
+include(CTest)
+
 add_library(ExCrypt STATIC
         src/excrypt.h
         src/excrypt_aes.c
@@ -36,6 +42,19 @@ add_library(ExCrypt STATIC
 
 target_include_directories(ExCrypt PUBLIC src)
 
+target_compile_features(ExCrypt PUBLIC c_std_11 cxx_std_17)
+
+set_target_properties(ExCrypt PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+# Enable AES-NI and SSE4.1 flags for excrypt_aes.c
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64|i[3-6]86"))
+    set_source_files_properties(src/excrypt_aes.c PROPERTIES COMPILE_OPTIONS "-maes;-msse4.1")
+endif()
+
 if(WIN32)
     target_link_libraries(ExCrypt PUBLIC bcrypt)
+endif()
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
 endif()
